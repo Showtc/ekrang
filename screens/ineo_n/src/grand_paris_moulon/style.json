@@ -1,0 +1,65 @@
+{
+  "styleInformation": {
+    "map": "grand_paris_moulon",
+    "arrowStyle": "ineo",
+    "styleName": "ineo"
+  },
+  "mapColors": {
+    "background": "#FFD79C",
+    "road": "#FFFFFF",
+    "main_road": "#FFEFA5",
+    "vegetation": "#CED78C",
+    "water": "#A1C2F8"
+  },
+  "legsColor": {
+    "route": "#FD0105",
+    "driven": "#FD0105",
+    "stopsLabel": "#000000",
+    "stopsLabelDriven": "#000000"
+  },
+  "stopsIcons": {
+    "stopsIconsInformations": false,
+    "stops": {
+      "stade de verfontaine": ["stadium.png", "parc.png"],
+      "verfontaine": "sncf.png"
+    },
+    "iconSizeHeight": "12px",
+    "iconSizeWidth": "auto",
+    "gapFromStopName": "15px",
+    "gapIcons": "5px",
+    "maxInLine": 5,
+    "gapLines": "5px",
+    "position": "top"
+  },
+  "connectionsStopLinesIcon": {
+    "show": false,
+    "iconSizeHeight": "12px",
+    "iconSizeWidth": "auto",
+    "gapFromStopName": "15px",
+    "gapIcons": "5px",
+    "maxInLine": 5,
+    "gapLines": "5px",
+    "position": "bottom"
+  },
+  "texts": {
+    "font": "C:/Windows/Fonts/Arial.ttf",
+    "size": "28px",
+    "rotation": 0,
+    "lineHeight": "100%",
+    "letterSpacing": "0px",
+    "gapFromMarker": "15px"
+  },
+  "stopMarker": {
+    "image": "stop_marker.png",
+    "imageDriven": "stop_marker_driven.png",
+    "iconSizeHeight": "28px",
+    "iconSizeWidth": "auto"
+  },
+  "arrow": {
+    "image": "arrow.png",
+    "iconSizeHeight": "30px",
+    "iconSizeWidth": "auto"
+  },
+  "showInformations": false,
+  "positionsIconsStops": ["connectionsStopLinesIcon", "stopsIcons"]
+}

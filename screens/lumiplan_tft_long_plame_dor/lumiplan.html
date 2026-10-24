@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Lumiplan TFT long - Palme d'Or (2400 x 720)</title>
+        <link rel="stylesheet" href="lumiplan.css" />
+    </head>
+    <body>
+        <div id="station" style="display: none">
+            <div id="stationLabel">Arrêt</div>
+            <div id="stationName"></div>
+            <div id="stationIcons"></div>
+        </div>
+        <div id="main">
+            <div id="top">
+                <div id="topLeft">
+                    <span id="line">--</span><span id="terminus"></span>
+                </div>
+                <div id="topRight"><div id="clock">--:--</div></div>
+            </div>
+            <div id="map"></div>
+            <div id="stops" style="display: none"></div>
+            <div id="ad" style="display: none">
+                <img id="adImg" src="" width="2400" height="720" />
+            </div>
+            <div id="bottom">Prochain arrêt : <span id="next">--</span></div>
+        </div>
+        <!-- ekrang's generated files (scripts/generate.py): every map first, then this screen's
+             style of each map (one line per src/<map>/style.js: add one for a new map). -->
+        <script src="../../maps/maps.js"></script>
+        <script src="src/st_servan/style.js"></script>
+        <script src="src/grand_paris_moulon/style.js"></script>
+        <script src="lumiplan.js"></script>
+    </body>
+</html>

@@ -1,0 +1,429 @@
+'##############
+'INEO - TACTILEO, HTML PAGE (openOMSI)
+'##############
+
+'The INEO SAEIV runs as a page: Script\ineo_html\ineo.html (model: [htmltexture] 800 x 480).
+'The page does the whole device - start-up, service login, main screen with the GPS, delay,
+'departure count-down, end of service - and sets the tactileo_* numbers the bus reads
+'(tactileo_mode, tactileo_schedule_active, tactileo_AtStation, tactileo_FirstStopIndex ...).
+
+'This script replaces Script\TACTILEO\ineo_tactileo.osc (same macro names for the bus script)
+'and only does what a page cannot:
+'- the texts the other scripts read (hanover passenger display, LumiTFT): tactileo_TTLineString,
+'  tactileo_TEXT_RunTarget, tactileo_TEXT_DisplayCurrStop, and the destination sign;
+'- the announcements (their file name) and the alert, on the page's triggers;
+'- the simulation's time, the power and the depot, as numbers for the page.
+
+'Based on ineo_tactileo.osc (c) 07.03.2023 NEROSY
+
+'Needs:
+'- Elec
+
+'----------------------
+' Triggers (pressed by the page)
+'----------------------
+
+{trigger:ineo_html_announce_arrival}
+    (M.L.ineo_html_PlayAnnouncement)
+{end}
+
+{trigger:ineo_html_announce_door}
+    (M.L.ineo_html_PlayDoorAnnouncement)
+{end}
+
+{trigger:ineo_html_alert}
+    (T.L.ev_tactileo_alert)
+{end}
+
+'----------------------
+' Init
+'----------------------
+
+{macro:tactileo_init}
+    1 (S.L.IBIS_TerminusCode_auto_set)
+    0 (S.L.ineo_html_simtime)
+    (C.L.tactileo_DoorAnnouncement_DoorBack) (S.L.ineo_html_door_back)
+    (C.L.tactileo_DoorAnnouncement_Block_time_insec) (S.L.ineo_html_door_block_time)
+{end}
+
+'----------------------
+' Frame
+'----------------------
+
+{macro:tactileo_frame}
+    1 (S.L.Refresh_Strings)
+'   The page's clock: the simulation's time, wrapping at 1000 s
+    (L.L.ineo_html_simtime) (L.S.Timegap) + s0 1000 >=
+    {if}
+        l0 1000 - s0
+    {endif}
+    l0 (S.L.ineo_html_simtime)
+    (M.L.ineo_html_depot)
+    (M.L.ineo_html_strings)
+    (M.L.ineo_html_target)
+{end}
+
+{macro:tactileo_elec}
+    (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > (S.L.ineo_html_power_ok)
+{end}
+
+{macro:ineo_hoursync}
+    (L.S.Time) 3600 / s0 trunc s1 "02" $IntToStrEnh ":" $+
+    l0 l1 - 60 * trunc "02" $IntToStrEnh $+ (S.$.tactileo_cockpit_time)
+{end}
+
+'   St-Servan: the page writes its C lines (C20, C23, C24A/B)
+{macro:ineo_html_depot}
+    0 (M.V.GetDepotStringGlobal) "St-Servan" $=
+    0 (M.V.GetDepotStringGlobal) "CREA_St-Servan" $= ||
+    0 (M.V.GetDepotStringGlobal) "CREA_St-Servan_DEV" $= ||
+    0 (M.V.GetDepotStringGlobal) "CREA_St-Servan_12" $= ||
+    (S.L.ineo_html_depot_stservan)
+{end}
+
+'   The texts of the old script that the other scripts read
+{macro:ineo_html_strings}
+'   The line of the timetable, taken while the service is checked
+    (L.L.tactileo_mode) 8 = (L.L.schedule_active) &&
+    {if}
+        (M.V.GetTTLineString) (S.$.tactileo_TTLineString)
+    {endif}
+'   The run's target and the stop, while the main screen shows
+    (L.L.tactileo_mode) 10 = (L.L.schedule_active) &&
+    {if}
+        (M.V.GetTTBusstopCount) 1 - (M.L.ineo_html_GetTTBusstopName) (S.$.tactileo_TEXT_RunTarget)
+        (L.L.tactileo_FirstStopIndex) (M.V.GetTTBusstopName) (S.$.tactileo_TEXT_DisplayCurrStop)
+    {else}
+        "" (S.$.tactileo_TEXT_DisplayCurrStop)
+    {endif}
+'   Off
+    (L.L.tactileo_power) !
+    {if}
+        "" (S.$.tactileo_TEXT_RunTarget)
+    {endif}
+{end}
+
+'   The destination sign follows the timetable once the service is taken
+{macro:ineo_html_target}
+    (M.V.GetTTLineString) (M.V.GetTTTerminusIndex) 0 (M.V.GetTerminusString) $+ (L.$.tactileo_LastTargetKnown) $= !
+    (L.L.tactileo_schedule_active) &&
+    {if}
+        (L.L.schedule_active)
+        {if}
+            (L.$.tactileo_TTLineString) (S.$.Matrix_Nr) (S.$.Matrix_Liniennummerstring)
+            (M.V.GetTTTerminusIndex) (S.L.IBIS_TerminusIndex) (M.V.GetTerminusCode) (S.L.IBIS_TerminusCode)
+            -1 (S.L.Matrix_TerminusIndex_Last) (M.L.ineo_html_RefreshTerminusText)
+        {endif}
+        (M.V.GetTTLineString) (M.V.GetTTTerminusIndex) 0 (M.V.GetTerminusString) $+ (S.$.tactileo_LastTargetKnown)
+    {endif}
+{end}
+
+{macro:ineo_html_RefreshTerminusText}
+    (L.L.IBIS_TerminusIndex) 0 (M.V.GetTerminusString) (S.$.IBIS_terminus_name)
+{end}
+
+'----------------------
+' Announcements (as in ineo_tactileo.osc)
+'----------------------
+
+{macro:ineo_html_PlayAnnouncement}
+'	(L.L.tactileo_FirstStopIndex) 0 >
+'	{if}
+
+'		"..\..\Announcements\" 0 (M.V.GetDepotStringGlobal) "\" $+ $+ (L.$.tactileo_TEXT_DisplayCurrStop) $+ $msg
+
+'		(L.L.IBIS_RouteIndex) (M.V.GetBusstopCount) 1 - (L.L.tactileo_FirstStopIndex) <=
+'		{if}
+'			"_#terminus" $+
+'		{endif}
+
+'		".wav" $+
+'		(T.F.ev_IBIS_Ansagen)
+'	{endif}
+
+    (L.L.tactileo_TargetHasNoAnsagen) !
+    {if}
+        "..\..\Announcements\"
+        0 (M.V.GetDepotStringGlobal) $+
+        "\" $+ s0 $length s5
+        (M.V.GetTTBusstopIndex) 0 >
+        {if}
+            0 (M.V.GetDepotStringGlobal) "Express 91.06" $=
+            0 (M.V.GetDepotStringGlobal) "Grand Paris-Moulon" $= ||
+            {if}
+                (M.V.GetTTBusstopCount) 1 - (M.V.GetTTBusstopIndex) = !
+                {if}
+                    (M.V.GetTTTerminusIndex) 1 (M.V.GetTerminusString) 11 $SetLengthL "LIGNE 91.06" $=
+                    {if}
+                        l0 (M.V.GetTTTerminusIndex) 1 (M.V.GetTerminusString) $RemoveSpaces 3 $SetLengthR $+ s0
+                    {else}
+                        l0 (M.V.GetTTLineString) $+ s0
+                    {endif}
+                    0 (M.V.GetDepotStringGlobal) "Express 91.06" $= (M.V.GetTTLineString) "11" $= ! &&
+                    0 (M.V.GetDepotStringGlobal) "Grand Paris-Moulon" $= (L.$.Yard) "Grand Paris-Moulon Keolis" $= ! (L.$.Yard) "Grand Paris-Moulon GPM" $= ! && && ||
+                    {if}
+                        l0 (M.V.GetTTTerminusIndex) (M.L.ineo_html_GetTTTerminusPrefix) $+ s0
+                    {else}
+                        l0 "_" $+ s0
+                    {endif}
+                    l0 "A_" $+ (M.V.GetTTBusstopIndex) (M.L.ineo_html_GetTTBusstopName) $+ s0
+                {else}
+                    (M.V.GetTTTerminusIndex) 1 (M.V.GetTerminusString) 11 $SetLengthL "LIGNE 91.06" $=
+                    {if}
+                        l0 "06" $+ s0
+                    {else}
+                        l0 (M.V.GetTTLineString) $+ s0
+                    {endif}
+                    (L.$.Yard) "Grand Paris-Moulon Keolis" $= {if} l0 "_Term" $+ s0 {endif}
+                    l0 "_A_" $+ (M.V.GetTTBusstopIndex) (M.L.ineo_html_GetTTBusstopName) $+ "_#terminus" $+ s0
+                {endif}
+            {else}
+                0 (M.V.GetDepotStringGlobal) "HamburgTagUndNacht" $=
+                0 (M.V.GetDepotStringGlobal) "HamburgHafenCity"   $= ||
+                0 (M.V.GetDepotStringGlobal) "Gladbeck"           $= ||
+                0 (M.V.GetDepotStringGlobal) "Ruhrgebiet"         $= ||
+                {if}
+                    l0 (M.V.GetTTLineString) "_" $+ $+
+                    (M.V.GetTTBusstopIndex) (M.L.ineo_html_GetTTBusstopName) (M.V.GetBusstopIndex) 3 (M.V.GetBusstopString) $+ s0
+                    (M.V.GetTTBusstopCount) 1 - (M.V.GetTTBusstopIndex) =
+                    {if}
+                        l0 "_#terminus" $+ s0
+                    {endif}
+                {else}
+                    0 (M.V.GetDepotStringGlobal) "Horizon16" $=
+                    {if}
+                        (M.V.GetTTBusstopCount) 1 - (M.V.GetTTBusstopIndex) = !
+                        {if}
+                            l0 (M.V.GetTTLineString) $+ "_" $+
+                            (M.V.GetTTTerminusIndex) (M.L.ineo_html_GetTTTerminusPrefix) $+ "_" $+
+                            (M.V.GetTTBusstopIndex) (M.L.ineo_html_GetTTBusstopName) $+ s0
+                        {else}
+                            l0 (M.V.GetTTBusstopIndex) (M.V.GetTTBusstopName) $+
+                            "_#terminus" $+ s0
+                        {endif}
+
+                    {else}
+                        0 (M.V.GetDepotStringGlobal) "DBC_Chicago" $=
+                        {if}
+                            l0 (M.V.GetTTLineString) "_" $+ $+ s0
+                        {endif}
+                        l0 (M.V.GetTTBusstopIndex) (M.L.ineo_html_GetTTBusstopName) $+ s0
+                        (M.V.GetTTBusstopCount) 1 - (M.V.GetTTBusstopIndex) =
+                        {if}
+                            l0 "_#terminus" $+ s0
+                        {endif}
+
+                    {endif}
+                {endif}
+            {endif}
+
+        {else}
+            0 (M.V.GetDepotStringGlobal) "Express 91.06" $=
+            0 (M.V.GetDepotStringGlobal) "Grand Paris-Moulon" $= ||
+            {if}
+                (M.V.GetTTTerminusIndex) 1 (M.V.GetTerminusString) 11 $SetLengthL "LIGNE 91.06" $=
+                {if}
+                    l0 (M.V.GetTTTerminusIndex) 1 (M.V.GetTerminusString) $RemoveSpaces 3 $SetLengthR $+ s0
+                {else}
+                    l0 (M.V.GetTTLineString) $+ s0
+                {endif}
+                l0 (M.V.GetTTTerminusIndex) (M.L.ineo_html_GetTTTerminusPrefix) $+ s0
+                0 (M.V.GetDepotStringGlobal) "Express 91.06" $=
+                {if}
+                    l0 "Dep_" $+ s0
+                {else}
+                    l0 "Dep_vers_" $+ s0
+                {endif}
+                l0 0 (M.L.ineo_html_GetTTBusstopName) $+ s0
+            {else}
+                0 (M.V.GetDepotStringGlobal) "Horizon16" $=
+                {if}
+                    l0 (M.V.GetTTLineString) $+ "_" $+
+                    (M.V.GetTTTerminusIndex) (M.L.ineo_html_GetTTTerminusPrefix) $+ "_" $+
+                    (M.V.GetTTBusstopIndex) (M.L.ineo_html_GetTTBusstopName) $+ s0
+                {else}
+                    0 (M.V.GetDepotStringGlobal) "St-Servan" $=
+                    0 (M.V.GetDepotStringGlobal) "CREA_St-Servan" $= ||
+                    0 (M.V.GetDepotStringGlobal) "CREA_St-Servan_DEV" $= ||
+                    0 (M.V.GetDepotStringGlobal) "CREA_St-Servan_12" $= ||
+                    {if}
+                        l0 (L.$.tactileo_TTLineString) $+ "_" $+
+                        (M.V.GetTTTerminusIndex) 0 (M.V.GetTerminusString) $+
+                        "_#target" $+ s0
+
+                    {endif}
+                {endif}
+            {endif}
+        {endif}
+        l0 ".wav" $+ $length l5 + l5 - 4 >
+        {if}
+            (T.F.ev_IBIS_Ansagen)
+        {endif}
+    {endif}
+
+{end}
+
+{macro:ineo_html_PlayDoorAnnouncement}
+    (L.L.tactileo_TargetHasNoAnsagen) !
+    {if}
+        "..\..\Announcements\"
+        0 (M.V.GetDepotStringGlobal) $+
+        "\" $+ s0 $length s5
+        0 (M.V.GetDepotStringGlobal) "Horizon16" $=
+        {if}
+            l0 (M.V.GetTTLineString) $+ "_" $+
+            (M.V.GetTTTerminusIndex) (M.L.ineo_html_GetTTTerminusPrefix) $+ "_" $+ s0
+            (M.V.GetTTBusstopIndex) (M.L.ineo_html_GetTTBusstopName) (L.$.tactileo_LastBusstopArrAnnouncementPlayed) $= !
+            {if} (M.V.GetTTBusstopIndex) 1 - {else} (M.V.GetTTBusstopIndex) {endif} s1
+            l0 l1 $+ (M.L.ineo_html_GetTTBusstopName) $+ s0
+        {else}
+            0 (M.V.GetDepotStringGlobal) "St-Servan" $=
+            0 (M.V.GetDepotStringGlobal) "CREA_St-Servan" $= ||
+            0 (M.V.GetDepotStringGlobal) "CREA_St-Servan_DEV" $= ||
+            0 (M.V.GetDepotStringGlobal) "CREA_St-Servan_12" $= ||
+            {if}
+                l0 (L.$.tactileo_TTLineString) $+ "_" $+
+                (M.V.GetTTTerminusIndex) 0 (M.V.GetTerminusString) $+
+                "_#target" $+ s0 (S.$.tactileo_AnnounceDir)
+            {else}
+                l0 (M.V.GetTTLineString) $+ s0
+                0 (M.V.GetDepotStringGlobal) "DBC_Chicago" $=
+                {if}
+                    l0 "_EXT_" $+ s0
+                {else}
+                    l0 "_" $+ s0
+                {endif}
+                l0 (M.V.GetTTTerminusIndex) 0 (M.V.GetTerminusString) $+ s0
+                0 (M.V.GetDepotStringGlobal) "DBC_Chicago" $= !
+                {if}
+                    l0 "_#ext" $+ s0
+                {endif}
+            {endif}
+        {endif} 
+        l0 ".wav" $+ $length l5 + l5 - 4 >
+        {if}
+            (T.F.ev_IBIS_Ansagen)
+        {endif}
+    {endif}
+  
+{end}
+
+{macro:ineo_html_GetTTBusstopName} s0
+    (M.V.GetTTBusstopName) s1
+    (S.$.tactileo_tmpstr1)
+ 
+'   GPM
+    0 (M.V.GetDepotStringGlobal) "Express 91.06" $= 0 (M.V.GetDepotStringGlobal) "Grand Paris-Moulon" $= || {if}
+    (L.$.tactileo_tmpstr1) "MASSY Gare - Terminus" $= {if} "" "MASSY Gare" s1 {endif}
+    (L.$.tactileo_tmpstr1) "Cormeilles Gare - Terminus" $= {if} "" "Cormeilles Gare" s1 {endif}
+    (L.$.tactileo_tmpstr1) 7 $SetLengthR "quai C3" $= {if} "" "Cormeilles Gare" s1 {endif}
+    (L.$.tactileo_tmpstr1) "PAUSE PM3" $= {if} "" "Plateau du Moulon" s1 {endif}
+    (L.$.tactileo_tmpstr1) 5 $SetLengthL "PMSud" $= {if} "" "PMSud Thalès" s1 {endif}
+    (L.$.tactileo_tmpstr1) 5 $SetLengthL "ENSTA" $= {if} "" "ENSTA Moulon Sud" s1 {endif}
+    (L.$.tactileo_tmpstr1) "Place 1802" $= {if} "" "Depot Transdev" s1 {endif}
+    (L.$.tactileo_tmpstr1) 6 $SetLengthL "Keolis" $= {if} "" "Depot Keolis" s1 {endif}
+    (L.$.tactileo_tmpstr1) 8 $SetLengthL "Quartier" $= {if} "" "Vauhallan Quartier résidentiel" s1 {endif}
+    {endif}
+ 
+' Horizon16
+    0 (M.V.GetDepotStringGlobal) "Horizon16" $= {if}
+    (L.$.tactileo_tmpstr1) "1 Voltaire" $= {if} "" "Voltaire" s1 {endif}
+    (L.$.tactileo_tmpstr1) "1 Cap Sud" $= {if} "" "Cap Sud" s1 {endif}
+    (L.$.tactileo_tmpstr1) "1 Voltaire SP" $= {if} "" "Voltaire SP" s1 {endif}
+    (L.$.tactileo_tmpstr1) "1 Beaulieu SP" $= {if} "" "Beaulieu SP" s1 {endif}
+    (L.$.tactileo_tmpstr1) "2 Voltaire" $= {if} "" "Voltaire" s1 {endif}
+    (L.$.tactileo_tmpstr1) "2 Saint Maur" $= {if} "" "Saint Maur" s1 {endif}
+    (L.$.tactileo_tmpstr1) "2 Voltaire SP" $= {if} "" "Voltaire SP" s1 {endif}
+    (L.$.tactileo_tmpstr1) "2 Pointerie SP" $= {if} "" "Pointerie SP" s1 {endif}
+    (L.$.tactileo_tmpstr1) "8 La loge" $= {if} "" "La loge" s1 {endif}
+    (L.$.tactileo_tmpstr1) "8 Notz" $= {if} "" "Notz" s1 {endif}
+    (L.$.tactileo_tmpstr1) "8 Saint Maur" $= {if} "" "Saint Maur" s1 {endif}
+    (L.$.tactileo_tmpstr1) "8a La Loge" $= {if} "" "La Loge" s1 {endif}
+    (L.$.tactileo_tmpstr1) "8a St Christophe" $= {if} "" "St Christophe" s1 {endif}
+    (L.$.tactileo_tmpstr1) "8b La Loge" $= {if} "" "La Loge" s1 {endif}
+    (L.$.tactileo_tmpstr1) "8b St Pierre" $= {if} "" "St Pierre" s1 {endif}
+    (L.$.tactileo_tmpstr1) "9 La Loge" $= {if} "" "La Loge" s1 {endif}
+    (L.$.tactileo_tmpstr1) "9 Provence" $= {if} "" "Provence" s1 {endif}
+    (L.$.tactileo_tmpstr1) "B Pointerie" $= {if} "" "Pointerie" s1 {endif}
+    (L.$.tactileo_tmpstr1) "B St Christophe" $= {if} "" "St Christophe" s1 {endif}
+    (L.$.tactileo_tmpstr1) "CSL MACH36" $= {if} "" "MACH36" s1 {endif}
+    (L.$.tactileo_tmpstr1) "CSL Etang de Von" $= {if} "" "Etang de Von" s1 {endif}
+    (L.$.tactileo_tmpstr1) "F3 Voltaire" $= {if} "" "Voltaire" s1 {endif}
+    (L.$.tactileo_tmpstr1) "S4 Ecole Les Planches" $= {if} "" "Ecole Les Planches" s1 {endif}
+    (L.$.tactileo_tmpstr1) "S4 Place de Blois" $= {if} "" "Place de Blois" s1 {endif}
+    {endif}
+ 
+ l1
+ {end}
+
+ {macro:ineo_html_GetTTTerminusPrefix}
+    s0 (M.V.GetTerminusCode) s1
+  
+' Express 91.06  / Grand Paris-Moulon
+    0 (M.V.GetDepotStringGlobal) "Express 91.06" $=
+    (L.$.Yard) "Grand Paris-Moulon" $= ||
+    {if}
+      l1 111 =
+      {if}
+        "_BG_"
+      {else}
+        l1 62 = l1 64 = ||
+        {if}
+          "_CG_"
+        {else}
+          l1 113 =
+          {if}
+            "_JM_"
+          {else}
+            l1 61 = l1 63 = || l1 65 = || l1 67 = ||
+            {if}
+              "_MG_"
+            {else}
+              l1 66 = l1 68 = ||
+              {if}
+                "_PM_"
+              {else}
+                l1 112 =
+                {if}
+                  "_QR_"
+                {else}
+                  ""
+                {endif}
+              {endif}
+            {endif}
+          {endif}
+        {endif}
+      {endif}
+  
+    {else}
+  
+' Horizon16
+    0 (M.V.GetDepotStringGlobal) "Horizon16" $=
+    {if}
+  
+      l0 0 (M.V.GetTerminusString) 1 $SetLengthL
+  
+    {else}
+  
+' St-Servan
+    0 (M.V.GetDepotStringGlobal) "St-Servan" $=
+    0 (M.V.GetDepotStringGlobal) "CREA_St-Servan" $= ||
+    0 (M.V.GetDepotStringGlobal) "CREA_St-Servan_DEV" $= ||
+    0 (M.V.GetDepotStringGlobal) "CREA_St-Servan_12" $= ||
+    {if}
+  
+      l1 "03" $IntToStr 1 $cutEnd "20" $=
+      l1 "03" $IntToStr 1 $cutEnd "23" $= ||
+      {if}
+        l1 "03" $IntToStr 1 $cutEnd
+      {else}
+        (M.V.GetTTLineString)
+      {endif}
+  
+    {else}
+      ""
+    {endif}
+    {endif}
+    {endif}
+  
+{end}

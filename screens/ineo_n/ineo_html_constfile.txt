@@ -1,0 +1,19 @@
+#######################
+tactileo Constfile
+#######################
+
+[const]
+tactileo_DoorAnnouncement_DoorBack
+1
+
+[const]
+tactileo_DoorAnnouncement_Block_time_insec
+10
+
+[const]
+HanoverPass_SlidingText_Veloc
+0.17
+
+[const]
+HanoverPass_SlidingText_Max_Rear
+-1.2

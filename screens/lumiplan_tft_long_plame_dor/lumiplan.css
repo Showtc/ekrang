@@ -1,0 +1,152 @@
+/* The Lumiplan TFT long (2400 x 720): a top bar (line, destination, clock), the middle
+   (the map or the next stops) and a bottom bar (the next stop); the information pictures and
+   the stop page take the whole screen. The engine has block flow and inline-block only: no
+   flexbox, no positioning, no clipping. */
+body {
+    margin: 0px;
+    width: 2400px;
+    height: 720px;
+    background: #ffffff;
+    color: #1a1a1a;
+    font-size: 44px;
+}
+#top {
+    height: 136px;
+    background: #0b3d6e;
+    color: #ffffff;
+}
+#topLeft {
+    display: inline-block;
+    width: 1852px;
+    height: 136px;
+    padding-left: 48px;
+}
+#topRight {
+    display: inline-block;
+    width: 452px;
+    height: 136px;
+    padding-right: 48px;
+}
+#line {
+    display: inline-block;
+    margin-top: 26px;
+    height: 84px;
+    font-size: 58px;
+    line-height: 84px;
+    padding: 0px 24px 0px 24px;
+    background: #ffb020;
+    color: #0b3d6e;
+    font-weight: bold;
+    border-radius: 14px;
+}
+#terminus {
+    display: inline-block;
+    margin-top: 26px;
+    margin-left: 32px;
+    height: 84px;
+    font-size: 54px;
+    line-height: 84px;
+    font-weight: bold;
+}
+#clock {
+    padding-top: 26px;
+    height: 84px;
+    font-size: 64px;
+    line-height: 84px;
+    text-align: right;
+    font-weight: bold;
+}
+#map {
+    width: 2400px;
+    height: 472px;
+    background: #dcebcb;
+}
+.row {
+    width: 2400px;
+}
+.cell {
+    display: inline-block;
+    background-color: #dcebcb;
+}
+.over {
+    display: inline-block;
+}
+#stops {
+    height: 448px;
+    padding: 24px 48px 0px 48px;
+    background: #eef2f6;
+}
+.stop {
+    height: 80px;
+}
+.dot {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    margin-top: 25px;
+    background: #0b3d6e;
+    border-radius: 15px;
+}
+.name {
+    display: inline-block;
+    height: 80px;
+    font-size: 44px;
+    line-height: 80px;
+    margin-left: 32px;
+    color: #3a4a5a;
+}
+.empty {
+    height: 80px;
+    font-size: 44px;
+    line-height: 80px;
+    color: #8a9aaa;
+}
+#ad {
+    height: 720px;
+    background: #0b3d6e;
+}
+#station {
+    height: 720px;
+    background: #0b3d6e;
+    color: #ffffff;
+    text-align: center;
+}
+#stationLabel {
+    padding-top: 130px;
+    height: 80px;
+    font-size: 58px;
+    line-height: 80px;
+    font-weight: bold;
+    color: #ffb020;
+}
+#stationIcons {
+    padding-top: 40px;
+    text-align: center;
+}
+.stationIcon {
+    display: inline-block;
+    margin: 0px 12px 0px 12px;
+}
+.lineIcon {
+    display: inline-block;
+    margin-left: 14px;
+    margin-top: 20px;
+}
+#stationName {
+    padding: 24px 60px 0px 60px;
+    font-size: 140px;
+    line-height: 160px;
+    font-weight: bold;
+}
+#bottom {
+    height: 112px;
+    font-size: 54px;
+    line-height: 112px;
+    padding-left: 48px;
+    background: #0b3d6e;
+    color: #ffffff;
+}
+#next {
+    font-weight: bold;
+    color: #ffb020;
+}

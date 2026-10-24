@@ -1,0 +1,4 @@
+{
+  "mapFolder": "maps/Grand Paris-Moulon",
+  "hofs": ["GPM_Global_BUSE", "GPM_Global_GB", "GPM_Global_GO", "GPM_GPM_Keolis_BUSE", "GPM_GPM_Keolis_GB", "GPM_GPM_Keolis_GO", "GPM_GPM_Transdev_BUSE", "GPM_GPM_Transdev_GB", "GPM_GPM_Transdev_GO", "GPM_InterEssonne_BUSE", "GPM_InterEssonne_GB", "GPM_InterEssonne_GO", "GPM_Vier_BUSE", "GPM_Vier_GB", "GPM_Vier_GO"]
+}

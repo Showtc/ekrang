@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>INEO SAEIV</title>
+        <style>
+            body {
+                margin: 0px;
+                width: 800px;
+                height: 480px;
+                background: #000000;
+                color: #ffffff;
+                font-size: 24px;
+            }
+            #screen {
+                width: 800px;
+                height: 480px;
+            }
+            /* a piece of the screen, and the layers over it */
+            .c {
+                display: inline-block;
+                text-align: left;
+                background-repeat: no-repeat;
+            }
+            /* a text, where the old text mesh was */
+            .t {
+                display: inline-block;
+            }
+            /* a touch area (it shows nothing: the button is in the picture) */
+            .z {
+                display: inline-block;
+            }
+            /* the GPS and its map */
+            .gps {
+                display: inline-block;
+                text-align: left;
+                background-color: #ffd79c;
+            }
+            .cell {
+                display: inline-block;
+                background-color: #ffd79c;
+                background-repeat: no-repeat;
+            }
+            .over {
+                display: inline-block;
+                background-repeat: no-repeat;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="screen"></div>
+        <!-- ekrang's generated files (scripts/generate.py): every map first, then this screen's
+             style of each map (one line per src/<map>/style.js: add one for a new map). The
+             GPS shows the map made for the depot the bus runs from. -->
+        <script src="../../maps/maps.js"></script>
+        <script src="src/st_servan/style.js"></script>
+        <script src="src/grand_paris_moulon/style.js"></script>
+        <script src="ineo.js"></script>
+    </body>
+</html>
