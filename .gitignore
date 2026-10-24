@@ -1,0 +1,4 @@
+scripts/work/
+scripts/rust/*/target/
+__pycache__/
+.env
