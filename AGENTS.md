@@ -393,6 +393,11 @@ A style needs its map generated first (its files in `scripts/work/<map>/`). Erro
 generator with `error: …`; `warning: …` lines are worth reading (missing pictures, hofs,
 badges).
 
+Each stop is drawn on its route: at the point of the route's line nearest to the bus stop
+object (which stands beside the road, while the route follows the road's middle), the marker,
+its name and icons with it. A stop further than 50 m from its line keeps its own place
+(`SNAP_M` in `scripts/rust/render/src/main.rs`).
+
 Pictures can be PNG, JPG/JPEG, TGA or DDS (badges, pictograms, stop markers, arrows,
 information pictures). When a folder has two files of the same name, the first of that order
 is taken. The pages show them as they are; the generator turns them into PNG for the renderer.
