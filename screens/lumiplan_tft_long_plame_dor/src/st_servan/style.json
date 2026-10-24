@@ -18,15 +18,17 @@
     "stopsLabelDriven": "#9e9e9e"
   },
   "stopsIcons": {
-    "stopsIconsInformations": false,
-    "stops": {},
-    "iconSizeHeight": "18px",
+    "stopsIconsInformations": true,
+    "stops": {
+      "Verfontaine": "sncf.png"
+    },
+    "iconSizeHeight": "24px",
     "iconSizeWidth": "auto",
     "gapFromStopName": "15px",
     "gapIcons": "5px",
     "maxInLine": 5,
     "gapLines": "5px",
-    "position": "top"
+    "position": "bottom"
   },
   "connectionsStopLinesIcon": {
     "show": true,
