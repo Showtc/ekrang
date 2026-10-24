@@ -1,0 +1,10 @@
+{
+  "st_servan": {
+    "mapDirectory": "st_servan",
+    "hofs": ["St-Servan","CREA_St-Servan","CREA_St-Servan_12","CREA_St-Servan_DEV","St-Servan - Deviation - AgoProjects"]
+  },
+  "grand_paris_moulon": {
+    "mapDirectory": "grand_paris_moulon",
+    "hofs": ["GPM Les Cars Vier","GPM Global","GPM Keolis Essonne Mobilites","GPM InterEssonne","GPM Transdev les Cars Moulon"]
+  }
+}
