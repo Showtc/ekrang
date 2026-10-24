@@ -292,6 +292,32 @@ def screen_files(name):
     return out
 
 
+def write_text(path, text):
+    """Writes a generated file: into a file next to it, then put in its place, tried again for
+    a few seconds when Windows refuses (the file held a moment by an editor, an antivirus, a
+    file sync or another run of this script)."""
+    import time
+
+    tmp = path + ".tmp"
+    for attempt in range(6):
+        try:
+            with open(tmp, "w", encoding="utf-8", newline="\n") as f:
+                f.write(text)
+            os.replace(tmp, path)
+            return
+        except OSError as e:
+            error = e
+            time.sleep(0.5)
+    try:
+        os.remove(tmp)
+    except OSError:
+        pass
+    fail(
+        "cannot write %s (%s): is it open in another program, or is another generate.py running?"
+        % (path, error)
+    )
+
+
 def load(path):
     try:
         return json.load(open(path, encoding="utf-8"))
@@ -516,16 +542,15 @@ for m in chosen if not a.styles_only else []:
 
 # every map's hof names (all maps, not only the chosen ones)
 os.makedirs(MAPS, exist_ok=True)
-with open(
-    os.path.join(MAPS, "hofs-folders.json"), "w", encoding="utf-8", newline="\n"
-) as f:
-    json.dump(
+write_text(
+    os.path.join(MAPS, "hofs-folders.json"),
+    json.dumps(
         {m: {"mapDirectory": m, "hofs": maps[m]["names"]} for m in sorted(maps)},
-        f,
         ensure_ascii=False,
         indent=2,
     )
-    f.write("\n")
+    + "\n",
+)
 
 # ---------------------------------------------------------------------------------------------
 # 9 to 11: the styles and arrows
@@ -856,9 +881,7 @@ for m in ready:
         + ["        %s," % dump(x) for x in r["routes"]]
         + ["    ],", "});"]
     )
-open(os.path.join(MAPS, "maps.js"), "w", encoding="utf-8", newline="\n").write(
-    "\n".join(rows) + "\n"
-)
+write_text(os.path.join(MAPS, "maps.js"), "\n".join(rows) + "\n")
 print("maps/maps.js: %d map(s)" % len(ready))
 
 
@@ -933,6 +956,6 @@ for screen, m, path, s in styles:
         + ["    ],", "});"]
     )
     out = os.path.join(os.path.dirname(path), "style.js")
-    open(out, "w", encoding="utf-8", newline="\n").write("\n".join(rows) + "\n")
+    write_text(out, "\n".join(rows) + "\n")
     print("%s: written" % rel(out))
 print("done")

@@ -270,6 +270,29 @@ fn dist_to(l: &[Pt], p: Pt) -> f32 {
     l.iter().map(|q| (q.0 - p.0).hypot(q.1 - p.1)).fold(f32::MAX, f32::min)
 }
 
+// A stop is drawn on its route, at the line's point nearest to it (the bus stop object stands
+// beside the road, the route follows the road's middle), when that point is this near (m).
+const SNAP_M: f32 = 50.0;
+
+/// The point of the polylines nearest to p, and how far it is.
+fn nearest_on(lines: &[&Vec<Pt>], p: Pt) -> Option<(Pt, f32)> {
+    let mut best: Option<(Pt, f32)> = None;
+    for l in lines {
+        for s in l.windows(2) {
+            let (a, b) = (s[0], s[1]);
+            let (dx, dy) = (b.0 - a.0, b.1 - a.1);
+            let len2 = dx * dx + dy * dy;
+            let t = if len2 > 0.0 { (((p.0 - a.0) * dx + (p.1 - a.1) * dy) / len2).clamp(0.0, 1.0) } else { 0.0 };
+            let q = (a.0 + t * dx, a.1 + t * dy);
+            let d = (q.0 - p.0).hypot(q.1 - p.1);
+            if best.map_or(true, |b| d < b.1) {
+                best = Some((q, d));
+            }
+        }
+    }
+    best
+}
+
 /// A timetable route (its road pieces in driving order) cut at its stops: the piece nearest
 /// each stop, searched onwards from the previous one, ends the leg to that stop. The pieces
 /// before the first stop go with it; those after the last stop with the last leg.
@@ -334,7 +357,14 @@ fn plan(routes_all: &str, info_path: &str, routes_out: &str, plan_out: &str) {
             // (the name drawn: the trip's `labels` when it has them - an IBIS route whose stops
             // are announcement idents - else the stop's own)
             let name = t["labels"].get(*k).and_then(Value::as_str).map(str::to_string).or_else(|| names.get(*k).cloned()).unwrap_or_default();
-            let leg = Leg { lines: ways.get(j).cloned().unwrap_or_default(), stop: *at, name, line: line.clone() };
+            // (on the line: the way to this stop and the way on from it - the first stop of an
+            // IBIS route has only the latter)
+            let near: Vec<&Vec<Pt>> = ways.get(j).into_iter().chain(ways.get(j + 1)).flatten().collect();
+            let stop = match nearest_on(&near, *at) {
+                Some((q, d)) if d <= SNAP_M / g.mpp as f32 => q,
+                _ => *at,
+            };
+            let leg = Leg { lines: ways.get(j).cloned().unwrap_or_default(), stop, name, line: line.clone() };
             let key = leg.key();
             let id = *leg_ids.entry(key).or_insert_with(|| {
                 legs.push(leg);
