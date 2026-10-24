@@ -12,9 +12,10 @@
     "water": "#aad3df"
   },
   "legsColor": {
-    "route": "#0033ff",
+    "route": "#00B6FF",
     "driven": "#9e9e9e",
-    "stopsLabel": "#0066ff"
+    "stopsLabel": "#00B6FF",
+    "stopsLabelDriven": "#9e9e9e"
   },
   "stopsIcons": {
     "stopsIconsInformations": true,
@@ -48,8 +49,17 @@
     "letterSpacing": "0px",
     "gapFromMarker": "15px"
   },
-  "stopMarker": "stop_marker.png",
-  "arrow": "arrow.png",
+  "stopMarker": {
+    "image": "stop_marker.png",
+    "imageDriven": "stop_marker_driven.png",
+    "iconSizeHeight": "50px",
+    "iconSizeWidth": "50px"
+  },
+  "arrow": {
+    "image": "arrow.png",
+    "iconSizeHeight": "30px",
+    "iconSizeWidth": "auto"
+  },
   "showInformations": true,
   "positionsIconsStops": ["connectionsStopLinesIcon", "stopsIcons"]
 }

@@ -1,0 +1,11 @@
+[package]
+name = "mapstops"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+omsi-map = { path = "D:/Utilisateurs/shows-SSD_Second/Documents/git_repositories/openOMSI_original/openOMSI/crates/omsi-map" }
+omsi-cfg = { path = "D:/Utilisateurs/shows-SSD_Second/Documents/git_repositories/openOMSI_original/openOMSI/crates/omsi-cfg" }
+serde_json = "1"
+
+[workspace]
